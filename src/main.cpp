@@ -26,16 +26,16 @@ switch(argv[1][0])
 			double tt = Timer::CPU_time();
 
 			try{
-				// instance.read_czfile_LaLoD(argv[2]); // read instance
-				// instance.read_facilityfile_LaLo(argv[3]); // read instance
-				// pMedian	mdl;
-				// int p_ = atoi(argv[4]);
-				// mdl.initialize_by_fmt_LaLo(instance, p_);
-				
-				instance.read_transcost_Table(argv[2], argv[3]);
+				instance.read_czfile_LaLoD(argv[2]); // read instance
+				instance.read_facilityfile_LaLo(argv[3]); // read instance
 				pMedian	mdl;
 				int p_ = atoi(argv[4]);
-			 	mdl.initialize_by_fmt_Table(instance, p_);
+				mdl.initialize_by_fmt_LaLo(instance, p_);
+				
+				// instance.read_transcost_Table(argv[2], argv[3]);
+				// pMedian	mdl;
+				// int p_ = atoi(argv[4]);
+			 // 	mdl.initialize_by_fmt_Table(instance, p_);
 
 
 

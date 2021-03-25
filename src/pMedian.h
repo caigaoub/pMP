@@ -30,7 +30,6 @@ struct Arc{
 };
 
 
-
 class pMedian{
 	public:
 		pMInstance	*								_inst = nullptr;
@@ -40,7 +39,7 @@ class pMedian{
 
 		double **										_dist_matx = nullptr;
 		double **										_w_dist_matx = nullptr; // weight distance matrix: demand[j]* dist[i,j]
-
+		Arc**											_wdist_matx_sorted = nullptr;	
 
 
 		void initialize_by_fmt_XY(pMInstance & inst_, int p_);
