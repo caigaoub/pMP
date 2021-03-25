@@ -147,7 +147,7 @@ float pMedian::to_Radians(const float degree){
 void pMedian::Lagrangian_algo(){
 	vector<float> lambda(_nb_customers); // initialize lagr. multipliers
 	initialize_LagMultipliers(lambda);
-	vector<vector<int>> best_X; // assignment variables of MIP: X
+	// vector<vector<int>> best_X; // assignment variables of MIP: X
 	vector<int> best_Y; // indicator variables that decide which subset of facility to open: Y
 	float Z_UB = INF; // upper bound
 	float Z_LB = -INF; // lower bound
@@ -161,12 +161,10 @@ void pMedian::Lagrangian_algo(){
 		float Z_D = get<0>(ret);
 		vector<float> R = get<1>(ret);
 
-		auto ret2 = calc_upper_bound(get<2>(ret));
-		float Z = ret2.first;
+		float Z = calc_upper_bound(get<2>(ret));
 		// update the upper bound
 		if(Z < Z_UB){
 			Z_UB = Z;
-			best_X = ret2.second;
 			best_Y = get<2>(ret);
 		}
 		//update the lower bound
@@ -181,7 +179,7 @@ void pMedian::Lagrangian_algo(){
 			}
 		}
 		if(theta < 0.0000005){
-			
+
 			Format::pretty_print("Iteration stops due to theta = 0 \n");
 			break;
 		}
@@ -319,31 +317,43 @@ TYPE_ZRY pMedian::calc_lower_bound(const vector<float> & lambda_){
 	return make_tuple(Z_D, R, Y);
 }
 
-TYPE_ZX pMedian::calc_upper_bound(const vector<int> &Y_){
-	//given Y, compute X
-	vector<vector<int>> X(_nb_facilities , vector<int> (_nb_customers, 0));
-	float tmp = INF;
-	int nearest_fac_idx = -1;
+double pMedian::calc_upper_bound(const vector<int> &Y_){
+	float Z = 0.0;
+	Arc tmpE;
 	for(int j=0; j<_nb_customers; j++){
-		 tmp = INF;
-		 nearest_fac_idx = -1;
-		for(int i=0; i <_nb_facilities; i++){
-			if(Y_[i] == 1 && _w_dist_matx[i][j] < tmp){
-				tmp = _w_dist_matx[i][j];
-				nearest_fac_idx = i;
+		for(int k=0; k <_nb_facilities; k++){
+			tmpE = _wdist_matx_sorted[j][k];
+			if(Y_[tmpE._idx] == 1){
+				Z += _w_dist_matx[tmpE._idx][j];
+				break;
 			}
 		}
-		X[nearest_fac_idx][j] = 1;
 	}
-	// compute Z
-	float Z = 0.0;
-	for(int i=0; i<_nb_facilities; i++){
-		for(int j=0; j<_nb_customers; j++){
-			Z +=_w_dist_matx[i][j] * X[i][j];
-		}
-	}
+
+	//Old way: given Y, compute X
+	// vector<vector<int>> X(_nb_facilities , vector<int> (_nb_customers, 0));
+	// float tmp = INF;
+	// int nearest_fac_idx = -1;
+	// for(int j=0; j<_nb_customers; j++){
+	// 	 tmp = INF;
+	// 	 nearest_fac_idx = -1;
+	// 	for(int i=0; i <_nb_facilities; i++){
+	// 		if(Y_[i] == 1 && _w_dist_matx[i][j] < tmp){
+	// 			tmp = _w_dist_matx[i][j];
+	// 			nearest_fac_idx = i;
+	// 		}
+	// 	}
+	// 	X[nearest_fac_idx][j] = 1;
+	// }
+	// // compute Z
+	// float Z = 0.0;
+	// for(int i=0; i<_nb_facilities; i++){
+	// 	for(int j=0; j<_nb_customers; j++){
+	// 		Z +=_w_dist_matx[i][j] * X[i][j];
+	// 	}
+	// }
 	// Format::pretty_print("current feasible solution: " + to_string(Z));
-	return	make_pair(Z, X);
+	return	Z;
 }
 
 
@@ -362,10 +372,4 @@ pMedian::~pMedian(void){
 		}
 		delete[] _wdist_matx_sorted;
 	}
-	// if(!_dist_matx){ // 
-	// 	for(int i=0; i<_nb_facilities; i++){
-	// 		delete[] _dist_matx[i];
-	// 	}
-	// 	delete[] _dist_matx;
-	// }
 }

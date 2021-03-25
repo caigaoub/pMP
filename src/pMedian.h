@@ -20,7 +20,7 @@
 
 /*Here,  */
 typedef tuple<float, vector<float>, vector<int>> TYPE_ZRY;
-typedef pair<float, vector<vector<int>>> TYPE_ZX;
+// typedef pair<float, vector<vector<int>>> TYPE_ZX;
 
 
 
@@ -50,7 +50,7 @@ class pMedian{
 		virtual ~pMedian(void);
 
 		TYPE_ZRY calc_lower_bound(const vector<float> & lambda_);
-		TYPE_ZX calc_upper_bound(const vector<int> &Y_);
+		double calc_upper_bound(const vector<int> &Y_);
 		void Lagrangian_algo();
 		void initialize_LagMultipliers(vector<float> & lambda_);
 		void stabilize_LagMultipliers(vector<float> & lambda_, int itr);
