@@ -15,16 +15,16 @@ public:
 	int 														_nb_cz_nodes;
 	int 														_nb_facility_nodes;
 
-	double *												_cz_demands = nullptr;
+	float *												_cz_demands = nullptr;
 	/* File type I: given coordinates (x,y) in 2D space */
 	int														_nb_dims;
-	double ** 											_cz_coors = nullptr;
-	double ** 											_facility_coors = nullptr;
+	float ** 											_cz_coors = nullptr;
+	float ** 											_facility_coors = nullptr;
 	/* File type II: given cost table and demand list (no coordinates)*/
-	double **												_transcost_matx = nullptr;
+	float **												_transcost_matx = nullptr;
 	/* File type III: given latitude and longtitude in geographical space */
-	double **												_cz_latlong_coors = nullptr;
-	double ** 											_facility_latlong_coors = nullptr;
+	float **												_cz_latlong_coors = nullptr;
+	float ** 											_facility_latlong_coors = nullptr;
 
 	/*read file <cz or facility>_<format>
 									[X: coordinate x]

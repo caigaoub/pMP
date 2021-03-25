@@ -15,17 +15,17 @@
 
 
 
-#define EPSILON   0.000001
-#define INF std::numeric_limits<double>::infinity() ;
+#define EPSILON   (float)0.000001
+#define INF std::numeric_limits<float>::infinity() ;
 
-/*Here, Z, X, Y are variables we define for the MIP */
-typedef tuple<double, vector<vector<int>>, vector<int>> TYPE_ZXY;
-typedef pair<double, vector<vector<int>>> TYPE_ZX;
+/*Here,  */
+typedef tuple<float, vector<float>, vector<int>> TYPE_ZRY;
+typedef pair<float, vector<vector<int>>> TYPE_ZX;
 
 
 
 struct Arc{
-		double 											_dist;
+		float 											_dist;
 		int 												_idx;
 };
 
@@ -37,8 +37,8 @@ class pMedian{
 		int 												_nb_customers;
 		int 												_nb_facilities;
 
-		double **										_dist_matx = nullptr;
-		double **										_w_dist_matx = nullptr; // weight distance matrix: demand[j]* dist[i,j]
+		float **										_dist_matx = nullptr;
+		float **										_w_dist_matx = nullptr; // weight distance matrix: demand[j]* dist[i,j]
 		Arc**											_wdist_matx_sorted = nullptr;	
 
 
@@ -49,15 +49,16 @@ class pMedian{
 
 		virtual ~pMedian(void);
 
-		TYPE_ZXY calc_lower_bound(const vector<double> & lambda_);
+		TYPE_ZRY calc_lower_bound(const vector<float> & lambda_);
 		TYPE_ZX calc_upper_bound(const vector<int> &Y_);
 		void Lagrangian_algo();
-		// static bool sort_by_sec(const pair<double,int> &a,  const pair<double,int> &b);
+		void initialize_LagMultipliers(vector<float> & lambda_);
+		void stabilize_LagMultipliers(vector<float> & lambda_, int itr);
 
-		void calc_weighted_dist_matx(double (*calc_dist)(pMInstance*, int, int));
-		static double calc_eucl_dist(pMInstance*, int fac_idx_, int cz_idx_);
-		static double to_Radians(const double degree);
-		static double calc_geo_dist(pMInstance*, int fac_idx_, int cz_idx_);
+		void calc_weighted_dist_matx(float (*calc_dist)(pMInstance*, int, int));
+		static float calc_eucl_dist(pMInstance*, int fac_idx_, int cz_idx_);
+		static float to_Radians(const float degree);
+		static float calc_geo_dist(pMInstance*, int fac_idx_, int cz_idx_);
 
 };
 

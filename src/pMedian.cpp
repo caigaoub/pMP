@@ -35,9 +35,9 @@ void pMedian::initialize_by_fmt_Table(pMInstance &inst_, int p_){
 	// calculate distance matrx (include weighted distance matrx)
 	// calc_weighted_dist_matx();
 	this->_dist_matx = _inst->_transcost_matx;
-	_w_dist_matx = new double*[_nb_facilities];
+	_w_dist_matx = new float*[_nb_facilities];
 	for(int i=0; i<_nb_facilities; i++){
-		_w_dist_matx[i] = new double[_nb_customers];
+		_w_dist_matx[i] = new float[_nb_customers];
 	}
 	/* sorted wdist matrix*/
 	_wdist_matx_sorted = new Arc*[_nb_customers];
@@ -67,12 +67,12 @@ void pMedian::initialize_by_fmt_LaLo(pMInstance & inst_, int p_){
 
 
 /* pre-calculate the weighted distance matrix */
-void pMedian::calc_weighted_dist_matx(double (*calc_dist)(pMInstance*, int, int)){
-	_w_dist_matx = new double*[_nb_facilities];
-	// _dist_matx = new double*[_nb_facilities];
+void pMedian::calc_weighted_dist_matx(float (*calc_dist)(pMInstance*, int, int)){
+	_w_dist_matx = new float*[_nb_facilities];
+	// _dist_matx = new float*[_nb_facilities];
 	for(int i=0; i<_nb_facilities; i++){
-		_w_dist_matx[i] = new double[_nb_customers];
-		// _dist_matx[i] = new double[_nb_customers];
+		_w_dist_matx[i] = new float[_nb_customers];
+		// _dist_matx[i] = new float[_nb_customers];
 	}
 	/* sorted wdist matrix*/
 	_wdist_matx_sorted = new Arc*[_nb_customers];
@@ -103,8 +103,8 @@ void pMedian::calc_weighted_dist_matx(double (*calc_dist)(pMInstance*, int, int)
 }
 
 /*  euclidean distance function */
-double pMedian::calc_eucl_dist(pMInstance * inst_, int fac_idx_, int cz_idx_){
-	double dist = pow(inst_->_facility_coors[fac_idx_][0] - inst_->_cz_coors[cz_idx_][0], 2);
+float pMedian::calc_eucl_dist(pMInstance * inst_, int fac_idx_, int cz_idx_){
+	float dist = pow(inst_->_facility_coors[fac_idx_][0] - inst_->_cz_coors[cz_idx_][0], 2);
 	dist += pow(inst_->_facility_coors[fac_idx_][1] - inst_->_cz_coors[cz_idx_][1], 2);
 	dist = max(dist, EPSILON); // avoid numerical error when custmer and facility are in the same location 
 	return pow(dist,0.5);
@@ -112,31 +112,31 @@ double pMedian::calc_eucl_dist(pMInstance * inst_, int fac_idx_, int cz_idx_){
 
 
 /*  geographical distance function */
-double pMedian::calc_geo_dist(pMInstance * inst_,  int fac_idx_, int cz_idx_){
-    double  lat1 = pMedian::to_Radians(inst_->_facility_latlong_coors[fac_idx_][0]);
-    double  long1 = pMedian::to_Radians(inst_->_facility_latlong_coors[fac_idx_][1]);
-    double lat2 = pMedian::to_Radians(inst_->_cz_latlong_coors[cz_idx_][0]);
-    double long2 = pMedian::to_Radians(inst_->_cz_latlong_coors[cz_idx_][1]);
+float pMedian::calc_geo_dist(pMInstance * inst_,  int fac_idx_, int cz_idx_){
+    float  lat1 = pMedian::to_Radians(inst_->_facility_latlong_coors[fac_idx_][0]);
+    float  long1 = pMedian::to_Radians(inst_->_facility_latlong_coors[fac_idx_][1]);
+    float lat2 = pMedian::to_Radians(inst_->_cz_latlong_coors[cz_idx_][0]);
+    float long2 = pMedian::to_Radians(inst_->_cz_latlong_coors[cz_idx_][1]);
       
     // Haversine Formula
-    double dlong = long2 - long1;
-    double dlat = lat2 - lat1;
+    float dlong = long2 - long1;
+    float dlat = lat2 - lat1;
   
-    double ans = pow(sin(dlat / 2), 2) + cos(lat1)*cos(lat2)* pow(sin(dlong / 2), 2);
+    float ans = pow(sin(dlat / 2), 2) + cos(lat1)*cos(lat2)* pow(sin(dlong / 2), 2);
   
     ans = 2 * asin(sqrt(ans));
   
     // Radius of Earth in 
     // Kilometers, R = 6371
     // Use R = 3956 for miles
-    double R = 3956.0;
+    float R = 3956.0;
     // Calculate the result
     ans = ans * R;
     return ans;
 }
 
-double pMedian::to_Radians(const double degree){
-    double one_deg = (M_PI) / 180;
+float pMedian::to_Radians(const float degree){
+    float one_deg = (M_PI) / 180;
     return (one_deg * degree);
 }
 
@@ -145,23 +145,24 @@ double pMedian::to_Radians(const double degree){
 /*----------------------------------------------------------------------------------------------------------*/
 
 void pMedian::Lagrangian_algo(){
-	int MAX_ITER = 100000;
-	vector<double> lambda(_nb_customers, 0.0); // initialize lagr. multipliers
+	vector<float> lambda(_nb_customers); // initialize lagr. multipliers
+	initialize_LagMultipliers(lambda);
 	vector<vector<int>> best_X; // assignment variables of MIP: X
 	vector<int> best_Y; // indicator variables that decide which subset of facility to open: Y
-	double Z_UB = INF; // upper bound
-	double Z_LB = -INF; // lower bound
-	double theta = 1.;
-
+	float Z_UB = INF; // upper bound
+	float Z_LB = -INF; // lower bound
+	float theta = 1.;
+	int MAX_ITER = 100000;
+	int itr = 1;
 	int lb_not_updated = 0;
-	for(int itr=0; itr < MAX_ITER; itr++){
+	while(true){
 		// obtaining the lower and upper bounds
 		auto ret = calc_lower_bound(lambda);
-		double Z_D = get<0>(ret);
-		vector<vector<int>> X_D = get<1>(ret);
+		float Z_D = get<0>(ret);
+		vector<float> R = get<1>(ret);
 
 		auto ret2 = calc_upper_bound(get<2>(ret));
-		double Z = ret2.first;
+		float Z = ret2.first;
 		// update the upper bound
 		if(Z < Z_UB){
 			Z_UB = Z;
@@ -179,31 +180,37 @@ void pMedian::Lagrangian_algo(){
 				lb_not_updated = 0;
 			}
 		}
-		if(theta < 0.005){
+		if(theta < 0.0000005){
+			
+			Format::pretty_print("Iteration stops due to theta = 0 \n");
 			break;
 		}
 		// determine the step size and update the multiplier
-		vector<double> residual(_nb_customers, 0.0);
-		for(int j=0; j<_nb_customers; j++){
-			residual[j] = 1.0;
-			for(int i=0; i <_nb_facilities; i++){
-				residual[j] -= X_D[i][j];
-			}
-		}
-		double residual_sq_sum = 0.0;
+		// vector<float> residual(_nb_customers, 0.0);
+		// for(int j=0; j<_nb_customers; j++){
+		// 	residual[j] = 1.0;
+		// 	for(int i=0; i <_nb_facilities; i++){
+		// 		residual[j] -= X_D[i][j];
+		// 	}
+		// }
+		float residual_sq_sum = 0.0;
 		for(int j=0; j <_nb_customers; j++){
-			residual_sq_sum += pow(residual[j],2);
+			residual_sq_sum += pow(R[j],2);
 		}
-		double t = theta * (Z_UB - Z_D)/ residual_sq_sum;
+		float t = theta * (Z_UB - Z_D)/ residual_sq_sum;
 		// cout << "theta = " << theta <<endl;
 		// update lambda
 		for(int j=0; j<_nb_customers; j++){
-			lambda[j] += t * residual[j];	
+			lambda[j] += t * R[j];	
 		}
+		// stabilize_LagMultipliers(lambda, itr+2);
+		itr++;
 		// compute the optimality gap
-		double opt_gap = (Z_UB - Z_LB)/Z_LB;
+		float opt_gap = (Z_UB - Z_LB)/Z_LB;
 		if (opt_gap < EPSILON){
 			Format::pretty_print("optimality gap is met " + to_string(opt_gap *100) + "%");
+			Format::pretty_print(to_string(Z_LB) + ", "+ to_string(Z_UB) + ", " + to_string(opt_gap*100) + "%");
+
 			break;
 		}
 		// cout << Z_LB << ", " << Z_UB << ", " << opt_gap*100 << "%" << endl;
@@ -214,23 +221,37 @@ void pMedian::Lagrangian_algo(){
 
 }
 
+void pMedian::initialize_LagMultipliers(vector<float> & lambda_){
+	for(int j=0; j<_nb_customers; j++){
+		lambda_[j] = _wdist_matx_sorted[j][0]._dist;
+	}
+}
 
-/* find the lower bound */
-TYPE_ZXY pMedian::calc_lower_bound(const vector<double> & lambda_){
+void pMedian::stabilize_LagMultipliers(vector<float> & lambda_, int itr){
+	// vector<pair<float,int>> lambda_ub(_nb_customers);
+	int idx = min(itr, _nb_facilities-1);
+	for(int j=0; j <_nb_customers; j++){
+		lambda_[j] = min(lambda_[j], _wdist_matx_sorted[idx][j]._dist);
+	}
+}
+
+/*
+Given a set of multipliers, optimality of solving the lag relaxation 
+will give the "best" lower bound on MIP
+	*/
+TYPE_ZRY pMedian::calc_lower_bound(const vector<float> & lambda_){
 	// obtain v
-	vector<pair<double, int>> v(_nb_facilities);
+	vector<pair<float, int>> v(_nb_facilities);
 	for(int i=0; i<_nb_facilities; i++){
 		v[i] = make_pair(0.0, i);
 	}
 	for(int i=0; i < _nb_facilities; i++){
 		for(int j=0; j< _nb_customers; j++){
-			v[i].first += min(0.0, _w_dist_matx[i][j] - lambda_[j]); 
+			v[i].first += min((float)0.0, _w_dist_matx[i][j] - lambda_[j]); 
 		}
 	}
 
-
-
-	std::sort(v.begin(), v.end(),[](const pair<double,int> &a,  const pair<double,int> &b){return a.first < b.first;});
+	std::sort(v.begin(), v.end(),[](const pair<float,int> &a,  const pair<float,int> &b){return a.first < b.first;});
 
 	// determine Y
 	vector<int> Y(_nb_facilities, 0);
@@ -238,16 +259,18 @@ TYPE_ZXY pMedian::calc_lower_bound(const vector<double> & lambda_){
 		Y[v[i].second] = 1;
 	}
 	// lastest way
-	vector<vector<int>> X(_nb_facilities , vector<int> (_nb_customers, 0));
+	// vector<vector<int>> X(_nb_facilities , vector<int> (_nb_customers, 0));
 	Arc tmpE;
-	double Z_D = 0.0;
+	float Z_D = 0.0;
+	vector<float> R(_nb_customers, 1.0);
 	for(int j=0; j< _nb_customers; j++){
 		Z_D += lambda_[j];
 		for(int k=0; k < _nb_facilities; k++){
 			tmpE = _wdist_matx_sorted[j][k];
 			if( Y[tmpE._idx] ==1){
 				if(tmpE._dist - lambda_[j] < 0){
-					X[tmpE._idx][j] = 1;
+					// X[tmpE._idx][j] = 1;
+					R[j] -= 1.0;
 					Z_D += tmpE._dist - lambda_[j];	
 				}else{
 					break;
@@ -265,7 +288,7 @@ TYPE_ZXY pMedian::calc_lower_bound(const vector<double> & lambda_){
 	// 		}
 	// 	}
 	// }
-	// double Z_D = 0.0;
+	// float Z_D = 0.0;
 	// for(int j=0; j <_nb_customers; j++){
 	// 	Z_D += lambda_[j];
 	// }
@@ -286,20 +309,20 @@ TYPE_ZXY pMedian::calc_lower_bound(const vector<double> & lambda_){
 	// 	}
 	// }
 	// // compute Z_D (the objective function of the lagr relaxation)
-	// double Z_D = 0.0;
+	// float Z_D = 0.0;
 	// for(int j=0; j <_nb_customers; j++){
 	// 	Z_D += lambda_[j];
 	// 	for(int i=0; i<_nb_facilities; i++){
 	// 		Z_D += _w_dist_matx[i][j]*X[i][j] -lambda_[j]*X[i][j];
 	// 	}
 	// }
-	return make_tuple(Z_D, X, Y);
+	return make_tuple(Z_D, R, Y);
 }
 
 TYPE_ZX pMedian::calc_upper_bound(const vector<int> &Y_){
 	//given Y, compute X
 	vector<vector<int>> X(_nb_facilities , vector<int> (_nb_customers, 0));
-	double tmp = INF;
+	float tmp = INF;
 	int nearest_fac_idx = -1;
 	for(int j=0; j<_nb_customers; j++){
 		 tmp = INF;
@@ -313,7 +336,7 @@ TYPE_ZX pMedian::calc_upper_bound(const vector<int> &Y_){
 		X[nearest_fac_idx][j] = 1;
 	}
 	// compute Z
-	double Z = 0.0;
+	float Z = 0.0;
 	for(int i=0; i<_nb_facilities; i++){
 		for(int j=0; j<_nb_customers; j++){
 			Z +=_w_dist_matx[i][j] * X[i][j];
@@ -322,7 +345,6 @@ TYPE_ZX pMedian::calc_upper_bound(const vector<int> &Y_){
 	// Format::pretty_print("current feasible solution: " + to_string(Z));
 	return	make_pair(Z, X);
 }
-
 
 
 
