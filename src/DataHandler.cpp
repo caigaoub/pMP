@@ -7,7 +7,7 @@ using namespace std;
 /* Read customer location & demand file */
 void pMInstance::read_czfile_XYD(const char *filename_){
 	strcpy(_czfile_name, filename_);
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -19,11 +19,11 @@ void pMInstance::read_czfile_XYD(const char *filename_){
 	infile >> _nb_cz_nodes >> _nb_dims;
 	// Format::pretty_print( "Nodes: " + to_string(_nb_cz_nodes) + ", Dimensions: " + to_string(_nb_dims)) ;
 	// read node coordinates and demands 
-	_cz_coors = new float*[_nb_cz_nodes];
+	_cz_coors = new double*[_nb_cz_nodes];
 	for(int i = 0; i < _nb_cz_nodes; i++){
-		_cz_coors[i] = new float[_nb_dims];
+		_cz_coors[i] = new double[_nb_dims];
 	}
-	_cz_demands = new float[_nb_cz_nodes];
+	_cz_demands = new double[_nb_cz_nodes];
 	for(int i = 0; i < _nb_cz_nodes; i++) {
 		infile >> _cz_coors[i][0] >> _cz_coors[i][1] >> _cz_demands[i];
 	}
@@ -47,7 +47,7 @@ void pMInstance::read_czfile_XYD(const char *filename_){
 /* Read facilty location file */
 void pMInstance::read_facilityfile_XY(const char *filename_){
 	strcpy(_facilityfile_name, filename_);
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -59,9 +59,9 @@ void pMInstance::read_facilityfile_XY(const char *filename_){
 	infile >> _nb_facility_nodes >> _nb_dims;
 	// Format::pretty_print( "Nodes: " + to_string(_nb_cz_nodes) + ", Dimensions: " + to_string(_nb_dims)) ;
 	// read node coordinates and demands 
-	_facility_coors = new float*[_nb_facility_nodes];
+	_facility_coors = new double*[_nb_facility_nodes];
 	for(int i = 0; i < _nb_facility_nodes; i++){
-		_facility_coors[i] = new float[_nb_dims];
+		_facility_coors[i] = new double[_nb_dims];
 	}
 	for(int i = 0; i < _nb_facility_nodes; i++) {
 		infile >> _facility_coors[i][0] >> _facility_coors[i][1];
@@ -84,7 +84,7 @@ void pMInstance::read_facilityfile_XY(const char *filename_){
 
 void pMInstance::read_transcost_Table(const char * filename_, const char * filename2_){
 	strcpy(_transcostfile_name, filename_);
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -95,9 +95,9 @@ void pMInstance::read_transcost_Table(const char * filename_, const char * filen
 	}
 	infile >> _nb_facility_nodes >> _nb_cz_nodes;
 	// read node coordinates and demands 
-	_transcost_matx = new float*[_nb_facility_nodes];
+	_transcost_matx = new double*[_nb_facility_nodes];
 	for(int i = 0; i < _nb_facility_nodes; i++){
-		_transcost_matx[i] = new float[_nb_cz_nodes];
+		_transcost_matx[i] = new double[_nb_cz_nodes];
 	}
 	for(int i = 0; i < _nb_facility_nodes; i++) {
 		for(int j=0; j<_nb_cz_nodes; j++){
@@ -120,7 +120,7 @@ void pMInstance::read_transcost_Table(const char * filename_, const char * filen
 }
 
 void pMInstance::read_demands_D(const char * filename_){
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -130,7 +130,7 @@ void pMInstance::read_demands_D(const char * filename_){
 		Format::pretty_print("Start reading demand file ...");
 	}
 	// readdemands 
-	_cz_demands = new float[_nb_cz_nodes];
+	_cz_demands = new double[_nb_cz_nodes];
 	for(int j=0; j<_nb_cz_nodes; j++){
 		infile >> _cz_demands[j];
 	}
@@ -139,7 +139,7 @@ void pMInstance::read_demands_D(const char * filename_){
 
 void pMInstance::read_czfile_LaLoD(const char*filename_){
 	strcpy(_czfile_name, filename_);
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -151,11 +151,11 @@ void pMInstance::read_czfile_LaLoD(const char*filename_){
 	infile >> _nb_cz_nodes >> _nb_dims;
 	// Format::pretty_print( "Nodes: " + to_string(_nb_cz_nodes) + ", Dimensions: " + to_string(_nb_dims)) ;
 	// read node coordinates and demands 
-	_cz_latlong_coors = new float*[_nb_cz_nodes];
+	_cz_latlong_coors = new double*[_nb_cz_nodes];
 	for(int i = 0; i < _nb_cz_nodes; i++){
-		_cz_latlong_coors[i] = new float[_nb_dims];
+		_cz_latlong_coors[i] = new double[_nb_dims];
 	}
-	_cz_demands = new float[_nb_cz_nodes];
+	_cz_demands = new double[_nb_cz_nodes];
 	for(int i = 0; i < _nb_cz_nodes; i++) {
 		infile >> _cz_latlong_coors[i][0] >> _cz_latlong_coors[i][1] >> _cz_demands[i];
 	}
@@ -183,7 +183,7 @@ void pMInstance::read_czfile_LaLoD(const char*filename_){
 /* Read facilty location file */
 void pMInstance::read_facilityfile_LaLo(const char *filename_){
 	strcpy(_facilityfile_name, filename_);
-	float tt = Timer::CPU_time();
+	double tt = Timer::CPU_time();
 	// open instance file
 	ifstream infile(filename_, ifstream::in);
 	if(!infile.is_open()){
@@ -195,9 +195,9 @@ void pMInstance::read_facilityfile_LaLo(const char *filename_){
 	infile >> _nb_facility_nodes >> _nb_dims;
 	// Format::pretty_print( "Nodes: " + to_string(_nb_cz_nodes) + ", Dimensions: " + to_string(_nb_dims)) ;
 	// read node coordinates and demands 
-	_facility_latlong_coors = new float*[_nb_facility_nodes];
+	_facility_latlong_coors = new double*[_nb_facility_nodes];
 	for(int i = 0; i < _nb_facility_nodes; i++){
-		_facility_latlong_coors[i] = new float[_nb_dims];
+		_facility_latlong_coors[i] = new double[_nb_dims];
 	}
 	for(int i = 0; i < _nb_facility_nodes; i++) {
 		infile >> _facility_latlong_coors[i][0] >> _facility_latlong_coors[i][1];

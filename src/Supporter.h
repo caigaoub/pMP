@@ -7,7 +7,8 @@
 #include <memory.h>
 #include<iostream> 
 #include <string>
-
+#include <iostream>
+#include <iomanip>
 #ifndef _MSC_VER
 #include <chrono>
 #else
@@ -34,7 +35,7 @@ public:
 class Format{
 public:
 	static void pretty_print(string str){
-		cout << " ------>> " << str << endl;
+		cout << std::setprecision(6) << " ------>> " << str << endl;
 	};
 };
 
